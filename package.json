@@ -5,6 +5,10 @@
   "author": "gong023 <gon.gong.gone@gmail.com>",
   "description": "display some feedly channel",
   "dependencies": {
+    "asyncawait": "^0.7.2",
+    "bluebird": "^2.3.5",
+    "cron": "^1.0.5",
+    "request": "^2.45.0",
     "hubot": "^2.11.1",
     "hubot-diagnostics": "0.0.1",
     "hubot-google-images": "^0.1.3",
