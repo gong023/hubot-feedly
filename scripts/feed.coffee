@@ -5,7 +5,7 @@ moment  = require 'moment'
 class FeedlyClient
   BASE_URL = "https://sandbox.feedly.com/"
 
-  constructor: (@client_id, @client_secret, @access_token = null) ->
+  constructor: (@client_id, @client_secret, @access_token = null, @refresh_token) ->
     @authHeader = Authorization: "Bearer " + @access_token
 
   profile: () ->
@@ -19,30 +19,12 @@ class FeedlyClient
   auth: (code) ->
     request.postAsync(
       uri: BASE_URL + 'v3/auth/token'
-      json:
+      form:
         code: code
         client_id: @client_id
         client_secret: @client_secret
-        redirect_uri: encodeURIComponent('http://localhost')
+        redirect_uri: 'http://localhost/'
         grant_type: 'authorization_code'
-    )
-    .then (response) ->
-      console.log(response)
-      reject new Error(response) if response.statusCode isnt 200
-      console.log '%j', response.body
-    .catch (response) ->
-      # msg.send '失敗してしまいました'
-      console.log response
-
-  refresh: (refresh_token) ->
-    request.postAsync(
-      uri: BASE_URL + 'v3/auth/token'
-      headers: @authHeader
-      json:
-        refresh_token: refresh_token
-        client_id: @client_id
-        client_secret: @client_secret
-        grant_type: 'refresh_token'
     )
 
   fetchFeed: (newerThan) ->
@@ -60,15 +42,21 @@ module.exports = (robot) ->
 
   robot.respond /token (.*)/i, (msg) ->
     msg.send '今度はリフレッシュトークンとアクセストークンを作ります。'
-    code = msg.match[1]
     client = new FeedlyClient(process.env.FEEDLY_CLIENT_ID, process.env.FEEDLY_CLIENT_SECRET)
-    client.auth(code)
+    client.auth(msg.match[1])
+    .then (response) ->
+      return Promise.reject(response) if response[0].statusCode isnt 200
+      body = JSON.parse(response[0].body)
+      process.env['FEEDLY_ACCESS_TOKEN'] = body.access_token
+      process.env['FEEDLY_REFRESH_TOKEN'] = body.refresh_token
+      msg.send 'トークンが作れました'
+    .error (response) ->
+      msg.send '失敗してしまいました'
+      msg.send JSON.stringify(response[0].body)
 
-  robot.respond /refresh$/i, (msg)->
+  robot.respond /profile$/i, (msg)->
     client = new FeedlyClient(process.env.FEEDLY_CLIENT_ID, process.env.FEEDLY_CLIENT_SECRET, process.env.FEEDLY_ACCESS_TOKEN)
-    client.refresh(process.env.FEEDLY_REFRESH_TOKEN)
-    .then (contents) ->
-      console.log('%j',contents)
+    client.profile()
 
   robot.respond /feed$/i, (msg) ->
     fiveMinAgo = moment().subtract(5, 'minutes')
