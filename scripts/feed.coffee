@@ -6,32 +6,15 @@ async   = require 'asyncawait/async'
 await   = require 'asyncawait/await'
 
 class FeedlyClient
-  BASE_URL = 'https://sandbox.feedly.com/'
-  REDIRECT_URL = 'http://localhost'
+  BASE_URL = 'https://cloud.feedly.com/'
 
-  constructor: (@client_id, @client_secret, @access_token = null, @refresh_token = null) ->
+  constructor: (@access_token) ->
     @authHeader = Authorization: "Bearer " + @access_token
 
   profile: () ->
     request.getAsync(
       uri: BASE_URL + 'v3/profile'
       headers: @authHeader
-    )
-    .spread (response, body) ->
-      console.log("%j", response)
-
-  codeUrl: () ->
-    BASE_URL + 'v3/auth/auth?scope=https://cloud.feedly.com/subscriptions&response_type=code&provider=google&client_id=' + @client_id + '&redirect_uri=' + REDIRECT_URL
-
-  auth: (code) ->
-    request.postAsync(
-      uri: BASE_URL + 'v3/auth/token'
-      form:
-        code: code
-        client_id: @client_id
-        client_secret: @client_secret
-        redirect_uri: REDIRECT_URL
-        grant_type: 'authorization_code'
     )
 
   markCounts: (newerThan = null) ->
@@ -48,34 +31,27 @@ class FeedlyClient
     )
 
 module.exports = (robot) ->
-  robot.respond /code$/i, (msg) ->
-    client = new FeedlyClient(process.env.FEEDLY_CLIENT_ID, process.env.FEEDLY_CLIENT_SECRET)
-    msg.send 'このURLをブラウザで開いて下さい'
-    msg.send client.codeUrl()
-    msg.send '認証したら、「code」パラメータをコピーして私に話しかけて下さい。こんな感じに'
-    msg.send 'hubot token XXX(codeの値)'
+  robot.respond /help token/i, (msg) ->
+    msg.send 'アクセストークンを作るリンクはこれです'
+    msg.send 'https://feedly.com/v3/auth/dev'
+    msg.send '詳しいことはここを見て下さい'
+    msg.send 'https://groups.google.com/forum/#!topic/feedly-cloud/YHLdeRAkn-c'
+    msg.send 'トークンをセットしたかったらこれで set token XXX(アクセストークンの値)'
 
-  robot.respond /token (.*)/i, (msg) ->
-    msg.send '今度はリフレッシュトークンとアクセストークンを作ります。'
-    client = new FeedlyClient(process.env.FEEDLY_CLIENT_ID, process.env.FEEDLY_CLIENT_SECRET)
-    client.auth(msg.match[1])
-    .then (response) ->
-      return Promise.reject(response) if response[0].statusCode isnt 200
-      body = JSON.parse(response[0].body)
-      process.env['FEEDLY_ACCESS_TOKEN'] = body.access_token
-      process.env['FEEDLY_REFRESH_TOKEN'] = body.refresh_token
-      msg.send 'トークンが作れました'
-    .error (response) ->
-      msg.send '失敗してしまいました'
-      msg.send JSON.stringify(response[0].body)
+  robot.respond /set token (.*)/i, (msg) ->
+    msg.send '雑にアクセストークンを取り込みます'
+    process.env['FEEDLY_ACCESS_TOKEN'] = msg.match[1]
+    msg.send 'すごく雑に持ってるから扱いに気をつけて'
 
   robot.respond /profile$/i, (msg)->
-    client = new FeedlyClient(process.env.FEEDLY_CLIENT_ID, process.env.FEEDLY_CLIENT_SECRET, process.env.FEEDLY_ACCESS_TOKEN)
+    client = new FeedlyClient(process.env.FEEDLY_ACCESS_TOKEN)
     client.profile()
+    .spread (response, body) ->
+      console.log("%j", response)
 
   robot.respond /feed$/i, (msg) ->
     getFeed = async (newerThan) ->
-      client = new FeedlyClient(process.env.FEEDLY_CLIENT_ID, process.env.FEEDLY_CLIENT_SECRET, process.env.FEEDLY_ACCESS_TOKEN)
+      client = new FeedlyClient(process.env.FEEDLY_ACCESS_TOKEN)
       feedIds = await client.markCounts(newerThan)
       .then (response) ->
         return Promise.reject(response) if response[0].statusCode isnt 200
