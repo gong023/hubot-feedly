@@ -29,3 +29,13 @@ module.exports = class FeedlyClient
         streamId: feedId
         unreadOnly: true
     )
+
+  markCategoryAsRead: (categoryIds) ->
+    request.postAsync(
+      uri: BASE_URL + 'v3/markers'
+      headers: @authHeader
+      json:
+        type: 'categories'
+        action: 'categoryIds'
+        categoryIds: categoryIds
+    )
