@@ -23,11 +23,13 @@ class FeedlyClient
       headers: @authHeader
     )
 
-
   streamContents: (feedId) ->
     request.getAsync(
-      uri: BASE_URL + 'v3/streams/' + feedId + '/contents?unreadOnly=true'
+      uri: BASE_URL + 'v3/streams/contents'
       headers: @authHeader
+      qs:
+        streamId: feedId
+        unreadOnly: true
     )
 
 module.exports = (robot) ->
@@ -36,7 +38,7 @@ module.exports = (robot) ->
     msg.send 'https://feedly.com/v3/auth/dev'
     msg.send '詳しいことはここを見て下さい'
     msg.send 'https://groups.google.com/forum/#!topic/feedly-cloud/YHLdeRAkn-c'
-    msg.send 'トークンをセットしたかったらこれで set token XXX(アクセストークンの値)'
+    msg.send 'トークンをセットしたかったらこれで”set token XXX(アクセストークンの値)"'
 
   robot.respond /set token (.*)/i, (msg) ->
     msg.send '雑にアクセストークンを取り込みます'
@@ -47,7 +49,7 @@ module.exports = (robot) ->
     client = new FeedlyClient(process.env.FEEDLY_ACCESS_TOKEN)
     client.profile()
     .spread (response, body) ->
-      console.log("%j", response)
+      msg.send response.body
 
   robot.respond /feed$/i, (msg) ->
     getFeed = async (newerThan) ->
@@ -55,27 +57,29 @@ module.exports = (robot) ->
       feedIds = await client.markCounts(newerThan)
       .then (response) ->
         return Promise.reject(response) if response[0].statusCode isnt 200
-        console.log response[0].body
         _.chain(JSON.parse(response[0].body).unreadcounts)
-          .filter((content) -> content.count isnt 0)
+          .reject((content) -> content.count is 0)
+          .filter((content) -> content.id.match(/global\.all$/))
           .map((content) -> content.id)
+          .value()
       .error (response) ->
-        msg.send '失敗してしまいました'
+        msg.send 'markCountsが失敗してしまいました'
         msg.send JSON.stringify(response[0].body)
 
-      return if not feedIds?
-      contents = []
+      return if !feedIds || feedIds.length is 0
       _.each(feedIds, (feedId) ->
-          msg.send feedId
           content = await client.streamContents(feedId)
           .then (response) ->
             return Promise.reject(response) if response[0].statusCode isnt 200
-            console.log '%j', JSON.parse(response[0].body)
+            _.each(JSON.parse(response[0].body).items, (item) ->
+                msg.send item.title
+                msg.send item.alternate[0].href
+              )
           .error (response) ->
-            msg.send '失敗してしまいました'
+            msg.send 'streamContentsが失敗してしまいました'
             msg.send JSON.stringify(response[0].body)
         )
 
     #fiveMinAgo = moment().subtract(5, 'minutes').valueOf()
-    fiveMinAgo = moment().subtract(5, 'days').valueOf()
+    fiveMinAgo = moment().subtract(30, 'hours').valueOf()
     getFeed(fiveMinAgo)
