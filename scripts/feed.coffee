@@ -35,7 +35,22 @@ module.exports = (robot) ->
       .then (response) ->
         return Promise.reject(response) if response[0].statusCode isnt 200
         _.chain(JSON.parse(response[0].body).unreadcounts)
-          .filter((content) -> content.id.match(/global\.all$/))
+          .filter((content) ->
+            return true if not config.getWhiteListCategories()? and not config.getBlackListCategories()?
+            content.id.match(/global\.all$/)
+          )
+          .filter((content) ->
+            return true if not config.getWhiteListCategories()?
+            console.log 'a'
+            category = config.id.match(/^user\/.+\/category\/(.+)$/)[1]
+            _.contains(config.getWhiteListCategories(), category)
+          )
+          .reject((content) ->
+            return false if not config.getBlackListCategories()?
+            console.log 'b'
+            category = config.id.match(/^user\/.+\/category\/(.+)$/)[1]
+            _.contains(config.getBlackListCategories(), category)
+          )
           .map((content) -> content.id)
           .value()
       .error (response) ->
@@ -44,7 +59,7 @@ module.exports = (robot) ->
 
       return if !feedIds || feedIds.length is 0
       _.each(feedIds, (feedId) ->
-          content = await client.streamContents(feedId)
+          client.streamContents(feedId)
           .then (response) ->
             return Promise.reject(response) if response[0].statusCode isnt 200
             _.each(JSON.parse(response[0].body).items, (item) ->
@@ -57,5 +72,5 @@ module.exports = (robot) ->
         )
 
     #fiveMinAgo = moment().subtract(5, 'minutes').valueOf()
-    fiveMinAgo = moment().subtract(30, 'hours').valueOf()
+    fiveMinAgo = moment().subtract(1, 'hours').valueOf()
     getFeed(fiveMinAgo)
