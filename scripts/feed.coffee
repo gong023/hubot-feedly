@@ -4,33 +4,8 @@ moment  = require 'moment'
 _       = require 'underscore'
 async   = require 'asyncawait/async'
 await   = require 'asyncawait/await'
-
-class FeedlyClient
-  BASE_URL = 'https://cloud.feedly.com/'
-
-  constructor: (@access_token) ->
-    @authHeader = Authorization: "Bearer " + @access_token
-
-  profile: () ->
-    request.getAsync(
-      uri: BASE_URL + 'v3/profile'
-      headers: @authHeader
-    )
-
-  markCounts: (newerThan = null) ->
-    request.getAsync(
-      uri: BASE_URL + 'v3/markers/counts?newerThan=' + newerThan
-      headers: @authHeader
-    )
-
-  streamContents: (feedId) ->
-    request.getAsync(
-      uri: BASE_URL + 'v3/streams/contents'
-      headers: @authHeader
-      qs:
-        streamId: feedId
-        unreadOnly: true
-    )
+FeedlyClient = require '../lib/feedlyclient'
+Config       = require '../lib/config'
 
 module.exports = (robot) ->
   robot.respond /help token/i, (msg) ->
@@ -42,23 +17,24 @@ module.exports = (robot) ->
 
   robot.respond /set token (.*)/i, (msg) ->
     msg.send '雑にアクセストークンを取り込みます'
-    process.env['FEEDLY_ACCESS_TOKEN'] = msg.match[1]
+    Config.setAccessToken msg.match[1]
     msg.send 'すごく雑に持ってるから扱いに気をつけて'
 
   robot.respond /profile$/i, (msg)->
-    client = new FeedlyClient(process.env.FEEDLY_ACCESS_TOKEN)
+    config = new Config()
+    client = new FeedlyClient(config.getAccessToken())
     client.profile()
     .spread (response, body) ->
       msg.send response.body
 
   robot.respond /feed$/i, (msg) ->
     getFeed = async (newerThan) ->
-      client = new FeedlyClient(process.env.FEEDLY_ACCESS_TOKEN)
+      config = new Config()
+      client = new FeedlyClient(config.getAccessToken())
       feedIds = await client.markCounts(newerThan)
       .then (response) ->
         return Promise.reject(response) if response[0].statusCode isnt 200
         _.chain(JSON.parse(response[0].body).unreadcounts)
-          .reject((content) -> content.count is 0)
           .filter((content) -> content.id.match(/global\.all$/))
           .map((content) -> content.id)
           .value()
