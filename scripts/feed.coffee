@@ -36,18 +36,19 @@ module.exports = (robot) ->
         return Promise.reject(response) if response[0].statusCode isnt 200
         _.chain(JSON.parse(response[0].body).unreadcounts)
           .filter((content) ->
-            return true if not config.getWhiteListCategories()? and not config.getBlackListCategories()?
+            # whitelist の指定も blacklist の指定もなかったら全部とる
+            return true if config.getWhiteListCategories()? and config.getBlackListCategories()?
             content.id.match(/global\.all$/)
           )
           .filter((content) ->
+            # whitelist の指定があったらそれを適用
             return true if not config.getWhiteListCategories()?
-            console.log 'a'
             category = content.id.match(/^user\/.+\/category\/(.+)$/)[1]
             _.contains(config.getWhiteListCategories(), category)
           )
           .reject((content) ->
+            # blacklist の指定があったらそれを適用
             return false if not config.getBlackListCategories()?
-            console.log 'b'
             category = content.id.match(/^user\/.+\/category\/(.+)$/)[1]
             _.contains(config.getBlackListCategories(), category)
           )
@@ -58,6 +59,7 @@ module.exports = (robot) ->
         msg.send JSON.stringify(response[0].body)
 
       return if !feedIds || feedIds.length is 0
+      responseItems = []
       _.each(feedIds, (feedId) ->
           await client.streamContents(feedId)
           .then (response) ->
@@ -65,22 +67,29 @@ module.exports = (robot) ->
             _.each(JSON.parse(response[0].body).items, (item) ->
                 msg.send item.title
                 msg.send item.alternate[0].href
+                responseItems.push item
               )
           .error (response) ->
             msg.send 'streamContentsが失敗してしまいました'
             msg.send JSON.stringify(response[0].body)
         )
 
-      markCategories = _.filter(feedIds, (feedId) ->
-        category = feedId.match(/^user\/.+\/category\/(.+)$/)[1]
-        _.contains(config.getMarkAsReadCategories(), category)
-      )
-      client.markCategoryAsRead(markCategories)
+      return if config.getMarkAsReadCategories() is null || config.getMarkAsReadCategories().length == 0
+      markFeeds = _.chain(responseItems)
+                  .map((responseItem) ->
+                    if _.contains(config.getMarkAsReadCategories(), responseItem.categories[0].label)
+                      return responseItem.id
+                    else
+                      return ''
+                  )
+                  .compact()
+                  .value()
+      client.markEntriesAsRead(markFeeds)
       .then (response) ->
         if response[0].statusCode isnt 200
           msg.send '既読つけるのに失敗してしまいました'
           msg.send JSON.stringify(response[0].body)
 
     #fiveMinAgo = moment().subtract(5, 'minutes').valueOf()
-    fiveMinAgo = moment().subtract(1, 'hours').valueOf()
+    fiveMinAgo = moment().subtract(3, 'hours').valueOf()
     getFeed(fiveMinAgo)

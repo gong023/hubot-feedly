@@ -14,5 +14,5 @@ module.exports = class Config
     process.env.FEEDLY_BLACKLIST_CATEGORIES.split(',')
 
   getMarkAsReadCategories: () ->
-    return null if !process.env.FEEDLY_MARK_AS_READ_CATEGORIES
+    return [] if !process.env.FEEDLY_MARK_AS_READ_CATEGORIES
     process.env.FEEDLY_MARK_AS_READ_CATEGORIES.split(',')
