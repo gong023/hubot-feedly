@@ -31,26 +31,29 @@ module.exports = (robot) ->
     getFeed = async (newerThan) ->
       config = new Config()
       client = new FeedlyClient(config.getAccessToken())
+      whiteListCategories = config.getWhiteListCategories()
+      blackListCategories = config.getBlackListCategories()
       feedIds = await client.markCounts(newerThan)
       .then (response) ->
         return Promise.reject(response) if response[0].statusCode isnt 200
         _.chain(JSON.parse(response[0].body).unreadcounts)
+          .reject((content) -> content.count is 0 )
           .filter((content) ->
             # whitelist の指定も blacklist の指定もなかったら全部とる
-            return true if config.getWhiteListCategories()? and config.getBlackListCategories()?
+            return true if whiteListCategories isnt undefined or blackListCategories isnt undefined
             content.id.match(/global\.all$/)
           )
           .filter((content) ->
             # whitelist の指定があったらそれを適用
-            return true if not config.getWhiteListCategories()?
-            category = content.id.match(/^user\/.+\/category\/(.+)$/)[1]
-            _.contains(config.getWhiteListCategories(), category)
+            return true if whiteListCategories is undefined
+            return false if content.id.match(/^user\/.+\/category\/(.+)$/) is null
+            _.contains(whiteListCategories, content.id.match(/^user\/.+\/category\/(.+)$/)[1])
           )
           .reject((content) ->
             # blacklist の指定があったらそれを適用
-            return false if not config.getBlackListCategories()?
-            category = content.id.match(/^user\/.+\/category\/(.+)$/)[1]
-            _.contains(config.getBlackListCategories(), category)
+            return false if blackListCategories is undefined
+            return true if content.id.match(/^user\/.+\/category\/(.+)$/) is null
+            _.contains(blackListCategories, content.id.match(/^user\/.+\/category\/(.+)$/)[1])
           )
           .map((content) -> content.id)
           .value()
@@ -65,22 +68,21 @@ module.exports = (robot) ->
           .then (response) ->
             return Promise.reject(response) if response[0].statusCode isnt 200
             _.each(JSON.parse(response[0].body).items, (item) ->
-                msg.send item.title
-                msg.send item.alternate[0].href
-                responseItems.push item
-              )
+                  msg.send item.title
+                  msg.send item.alternate[0].href
+                  responseItems.push item
+                )
           .error (response) ->
             msg.send 'streamContentsが失敗してしまいました'
             msg.send JSON.stringify(response[0].body)
         )
 
-      return if config.getMarkAsReadCategories() is null || config.getMarkAsReadCategories().length == 0
+      markCategories = config.getMarkAsReadCategories()
+      return if markCategories is undefined
       markFeeds = _.chain(responseItems)
                   .map((responseItem) ->
-                    if _.contains(config.getMarkAsReadCategories(), responseItem.categories[0].label)
-                      return responseItem.id
-                    else
-                      return ''
+                    label = responseItem.categories[0].label
+                    if _.contains(markCategories, label) then responseItem.id else ''
                   )
                   .compact()
                   .value()
@@ -90,6 +92,6 @@ module.exports = (robot) ->
           msg.send '既読つけるのに失敗してしまいました'
           msg.send JSON.stringify(response[0].body)
 
-    #fiveMinAgo = moment().subtract(5, 'minutes').valueOf()
-    fiveMinAgo = moment().subtract(3, 'hours').valueOf()
+    #fiveMinAgo = moment().subtract(5, 'minutes').unix()
+    fiveMinAgo = moment().subtract(10, 'hours').unix()
     getFeed(fiveMinAgo)

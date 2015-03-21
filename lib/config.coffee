@@ -6,13 +6,10 @@ module.exports = class Config
     process.env['FEEDLY_ACCESS_TOKEN'] = token
 
   getWhiteListCategories: () ->
-    return null if !process.env.FEEDLY_WHITELIST_CATEGORIES
-    process.env.FEEDLY_WHITELIST_CATEGORIES.split(',')
+    process.env.FEEDLY_WHITELIST_CATEGORIES.split(',') if process.env.FEEDLY_WHITELIST_CATEGORIES isnt undefined
 
   getBlackListCategories: () ->
-    return null if !process.env.FEEDLY_BLACKLIST_CATEGORIES
-    process.env.FEEDLY_BLACKLIST_CATEGORIES.split(',')
+    process.env.FEEDLY_BLACKLIST_CATEGORIES.split(',') if process.env.FEEDLY_BLACKLIST_CATEGORIES isnt undefined
 
   getMarkAsReadCategories: () ->
-    return [] if !process.env.FEEDLY_MARK_AS_READ_CATEGORIES
-    process.env.FEEDLY_MARK_AS_READ_CATEGORIES.split(',')
+    process.env.FEEDLY_MARK_AS_READ_CATEGORIES.split(',') if process.env.FEEDLY_MARK_AS_READ_CATEGORIES isnt undefined
