@@ -67,7 +67,9 @@ module.exports = (robot) ->
           await client.streamContents(feedId)
           .then (response) ->
             return Promise.reject(response) if response[0].statusCode isnt 200
-            _.each(JSON.parse(response[0].body).items, (item) ->
+            # newerThan が期待通りに動かない
+            items = _.filter(JSON.parse(response[0].body).items, (item) -> parseInt(item.crawled) > newerThan)
+            _.each(items, (item) ->
                   msg.send item.title
                   msg.send item.alternate[0].href
                   responseItems.push item
@@ -92,6 +94,5 @@ module.exports = (robot) ->
           msg.send '既読つけるのに失敗してしまいました'
           msg.send JSON.stringify(response[0].body)
 
-    #fiveMinAgo = moment().subtract(5, 'minutes').unix()
-    fiveMinAgo = moment().subtract(10, 'hours').unix()
-    getFeed(fiveMinAgo)
+    fiveMinAgo = moment().subtract(5, 'minutes').valueOf()
+    getFeed(parseInt(fiveMinAgo))
