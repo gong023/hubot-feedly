@@ -1,0 +1,32 @@
+{
+  "addons": [
+    "redistogo"
+  ],
+  "description": "get feed from feedly and mark as read.",
+  "env": {
+    "HUBOT_SLACK_TOKEN": {
+      "description": "token of your hubot slack account."
+    },
+    "HEROKU_URL": {
+      "description": "see https://github.com/slackhq/hubot-slack#deploying-to-heroku"
+    },
+    "FEEDLY_WHITELIST_CATEGORIES": {
+      "description": "white list categories separeted by ','",
+      "required": "false"
+    },
+    "FEEDLY_BLACKLIST_CATEGORIES": {
+      "description": "black list categories separeted by ','",
+      "required": "false"
+    },
+    "FEEDLY_MARK_AS_READ_CATEGORIES": {
+      "description": "mark as read categories separeted by ','",
+      "required": "false"
+    },
+    "TZ": {
+      "description": "Timezone.",
+      "value": "Asia/Tokyo"
+    }
+  },
+  "keywords": ["chatops"],
+  "name": "hubot-feedly"
+}
