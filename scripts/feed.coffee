@@ -17,7 +17,8 @@ module.exports = (robot) ->
 
   robot.respond /set token (.*)/i, (msg) ->
     msg.send '雑にアクセストークンを取り込みます'
-    Config.setAccessToken msg.match[1]
+    config = new Config()
+    config.setAccessToken msg.match[1]
     msg.send 'すごく雑に持ってるから扱いに気をつけて'
 
   robot.respond /profile$/i, (msg)->
