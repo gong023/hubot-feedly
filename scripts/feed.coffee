@@ -70,7 +70,7 @@ module.exports = (robot) ->
             return Promise.reject(response) if response[0].statusCode isnt 200
             # newerThan が期待通りに動かない
             #items = _.filter(JSON.parse(response[0].body).items, (item) -> parseInt(item.crawled) > newerThan)
-            items = JSON.parse(response[0].body.items)
+            items = JSON.parse(response[0].body).items
             _.each(items, (item) ->
                   msg.send item.title
                   msg.send item.alternate[0].href
