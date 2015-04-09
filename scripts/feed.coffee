@@ -81,7 +81,7 @@ feedTask = (msg) ->
 
 module.exports = (robot) ->
   new cronJob('*/5 * * * *', () =>
-    feedTask(robot)
+    robot.send process.env.HUBOT_SLACK_BOTNAME + ' feed'
   ).start()
 
   robot.respond /feed$/i, (msg) ->
