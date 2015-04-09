@@ -8,6 +8,7 @@ FeedlyClient = require '../lib/feedlyclient'
 Config       = require '../lib/config'
 
 module.exports = (robot) ->
+
   robot.respond /help token/i, (msg) ->
     msg.send 'アクセストークンを作るリンクはこれです'
     msg.send 'https://feedly.com/v3/auth/dev'
@@ -20,6 +21,7 @@ module.exports = (robot) ->
     config = new Config()
     config.setAccessToken msg.match[1]
     msg.send 'すごく雑に持ってるから扱いに気をつけて'
+    console.log config.getAccessToken()
 
   robot.respond /profile$/i, (msg)->
     config = new Config()

@@ -1,9 +1,19 @@
+fs   = require('fs')
+path = require('path')
+
 module.exports = class Config
+
+  file: () ->
+    'feedly_access_token.txt'
+
   getAccessToken: () ->
-    process.env.FEEDLY_ACCESS_TOKEN # config:getで見えちゃうけどね
+    try
+      fs.readFileSync(this.file(), {encodinf: 'utf8'})
+    catch e
+      console.error(e)
 
   setAccessToken: (token) ->
-    process.env['FEEDLY_ACCESS_TOKEN'] = token
+    fs.writeFileSync(this.file(), token)
 
   getWhiteListCategories: () ->
     process.env.FEEDLY_WHITELIST_CATEGORIES.split(',') if process.env.FEEDLY_WHITELIST_CATEGORIES isnt undefined
