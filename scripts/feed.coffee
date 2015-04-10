@@ -79,9 +79,16 @@ feedTask = (msg) ->
   fiveMinAgo = moment().subtract(5, 'minutes').valueOf()
   getFeed(parseInt(fiveMinAgo))
 
+class MessageDecorator
+  constructor: (@robot, @env) ->
+
+  send: (message) ->
+    @robot.send(@env, message)
+
 module.exports = (robot) ->
-  new cronJob('*/5 * * * *', () =>
-    robot.send process.env.HUBOT_SLACK_BOTNAME + ' feed'
+  new cronJob('*/5 * * * *', () ->
+    msg = new MessageDecorator(robot, {room: '#feedly'})
+    feedTask(msg)
   ).start()
 
   robot.respond /feed$/i, (msg) ->
@@ -99,7 +106,6 @@ module.exports = (robot) ->
     config = new Config()
     config.setAccessToken msg.match[1]
     msg.send 'すごく雑に持ってるから扱いに気をつけて'
-    console.log config.getAccessToken()
 
   robot.respond /profile$/i, (msg)->
     config = new Config()
