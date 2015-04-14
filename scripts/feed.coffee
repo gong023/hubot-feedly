@@ -99,13 +99,7 @@ module.exports = (robot) ->
     msg.send 'https://feedly.com/v3/auth/dev'
     msg.send '詳しいことはここを見て下さい'
     msg.send 'https://groups.google.com/forum/#!topic/feedly-cloud/YHLdeRAkn-c'
-    msg.send 'トークンをセットしたかったらこれで”set token XXX(アクセストークンの値)"'
-
-  robot.respond /set token (.*)/i, (msg) ->
-    msg.send '雑にアクセストークンを取り込みます'
-    config = new Config()
-    config.setAccessToken msg.match[1]
-    msg.send 'すごく雑に持ってるから扱いに気をつけて'
+    msg.send 'アクセストークンがとれたら環境変数FEEDLY_ACCESS_TOKENに入れてください'
 
   robot.respond /profile$/i, (msg)->
     config = new Config()
