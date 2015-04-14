@@ -37,6 +37,7 @@ feedTask = (msg) ->
           _.contains(blackListCategories, content.id.match(/^user\/.+\/category\/(.+)$/)[1])
         )
         .map((content) -> content.id)
+        .last(10) # あまりメッセージが多いとbotのプロセスが死ぬ
         .value()
     .error (response) ->
       msg.send 'markCountsが失敗してしまいました'
