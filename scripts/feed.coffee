@@ -37,7 +37,6 @@ feedTask = (msg) ->
           _.contains(blackListCategories, content.id.match(/^user\/.+\/category\/(.+)$/)[1])
         )
         .map((content) -> content.id)
-        .last(10) # あまりメッセージが多いとbotのプロセスが死ぬ
         .value()
     .error (response) ->
       msg.send 'markCountsが失敗してしまいました'
@@ -51,12 +50,11 @@ feedTask = (msg) ->
           return Promise.reject(response) if response[0].statusCode isnt 200
           # newerThan が期待通りに動かない
           #items = _.filter(JSON.parse(response[0].body).items, (item) -> parseInt(item.crawled) > newerThan)
-          items = JSON.parse(response[0].body).items
-          _.each(items, (item) ->
+          items = _.last(JSON.parse(response[0].body).items, 10) # 多すぎるとbotのプロセスが死ぬ？
+          _.each items, (item) ->
                 msg.send item.title
                 msg.send item.alternate[0].href
                 responseItems.push item
-              )
         .error (response) ->
           msg.send 'streamContentsが失敗してしまいました'
           msg.send JSON.stringify(response[0].body)
