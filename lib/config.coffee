@@ -14,3 +14,9 @@ module.exports = class Config
 
   getFeedlyRoomName:() ->
     process.env.FEEDLY_ROOM_NAME
+
+  getDocomoToken: () ->
+    process.env.HUBOT_DOCOMO_TOKEN
+
+  getDocomoCharacter: () ->
+    JSON.parse(process.env.HUBOT_DOCOMO_CHARACTER) if process.env.HUBOT_DOCOMO_CHARACTER isnt undefined
