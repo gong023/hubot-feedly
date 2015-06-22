@@ -5,8 +5,9 @@ moment = require 'moment'
 module.exports = (robot) ->
 
   robot.respond /(.*)/, (msg) ->
-    c = new Config()
     query = msg.match[1]
+    return if query.match(/(教えて|feed|ping|profile|help|image)/)
+    c = new Config()
     params = c.getDocomoCharacter()
     docomo_client = new Docomo(c.getDocomoToken())
 
@@ -20,4 +21,13 @@ module.exports = (robot) ->
         msg.send(data.utt)
         robot.brain.set 'docomo_context', data.context
         robot.brain.set 'docomo_context_timestamp', moment().unix()
+      )
+
+  robot.respond /教えて (.*)/, (msg) ->
+    c = new Config()
+    query = msg.match[1]
+    docomo_client = new Docomo(c.getDocomoToken())
+
+    docomo_client.createKnowledgeQA(query, (err, data) ->
+        msg.send(data.message.textForDisplay + ' ' + data.answers[0].linkUrl)
       )
