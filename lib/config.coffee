@@ -11,3 +11,6 @@ module.exports = class Config
 
   getMarkAsReadCategories: () ->
     process.env.FEEDLY_MARK_AS_READ_CATEGORIES.split(',') if process.env.FEEDLY_MARK_AS_READ_CATEGORIES isnt undefined
+
+  getFeedlyRoomName:() ->
+    process.env.FEEDLY_ROOM_NAME

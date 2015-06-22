@@ -86,7 +86,8 @@ class MessageDecorator
 
 module.exports = (robot) ->
   new cronJob('*/5 * * * *', () ->
-    msg = new MessageDecorator(robot, {room: '#feedly'})
+    c = new Config()
+    msg = new MessageDecorator(robot, {room: c.getFeedlyRoomName()})
     feedTask(msg)
   ).start()
 
