@@ -75,8 +75,8 @@ feedTask = (msg) ->
         msg.send '既読つけるのに失敗してしまいました'
         msg.send JSON.stringify(response[0].body)
 
-  fiveMinAgo = moment().subtract(5, 'minutes').valueOf()
-  getFeed(parseInt(fiveMinAgo))
+  twentyMinAgo = moment().subtract(20, 'minutes').valueOf()
+  getFeed(parseInt(twentyMinAgo))
 
 class MessageDecorator
   constructor: (@robot, @env) ->
@@ -85,7 +85,7 @@ class MessageDecorator
     @robot.send(@env, message)
 
 module.exports = (robot) ->
-  new cronJob('*/5 * * * *', () ->
+  new cronJob('*/20 * * * *', () ->
     c = new Config()
     msg = new MessageDecorator(robot, {room: c.getFeedlyRoomName()})
     feedTask(msg)
