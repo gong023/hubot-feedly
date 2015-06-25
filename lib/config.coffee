@@ -1,5 +1,4 @@
-module.exports = class Config
-
+Config =
   getAccessToken: () ->
     process.env.FEEDLY_ACCESS_TOKEN
 
@@ -20,3 +19,5 @@ module.exports = class Config
 
   getDocomoCharacter: () ->
     JSON.parse(process.env.HUBOT_DOCOMO_CHARACTER) if process.env.HUBOT_DOCOMO_CHARACTER isnt undefined
+
+module.exports = Config

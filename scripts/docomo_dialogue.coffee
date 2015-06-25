@@ -7,9 +7,8 @@ module.exports = (robot) ->
   robot.respond /(.*)/, (msg) ->
     query = msg.match[1]
     return if query.match(/(教えて|feed|ping|profile|help|image|animate)/)
-    c = new Config()
-    params = c.getDocomoCharacter()
-    docomo_client = new Docomo(c.getDocomoToken())
+    params = Config.getDocomoCharacter()
+    docomo_client = new Docomo(Config.getDocomoToken())
 
     context_timestamp = robot.brain.get 'docomo_context_timestamp' || moment().unix()
     if moment().unix() - context_timestamp > 60 * 15
@@ -23,10 +22,9 @@ module.exports = (robot) ->
         robot.brain.set 'docomo_context_timestamp', moment().unix()
       )
 
-  robot.respond /教えて (.*)/, (msg) ->
-    c = new Config()
+  robot.respond /教えて (.*)/, (msg) ->    
     query = msg.match[1]
-    docomo_client = new Docomo(c.getDocomoToken())
+    docomo_client = new Docomo(Config.getDocomoToken())
 
     docomo_client.createKnowledgeQA(query, (err, data) ->
         msg.send(data.message.textForDisplay + ' ' + data.answers[0].linkUrl)
