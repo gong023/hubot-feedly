@@ -1,15 +1,14 @@
-Promise = require 'bluebird'
-request = Promise.promisifyAll(require('request'))
-moment  = require 'moment'
-_       = require 'underscore'
-cronJob = require('cron').CronJob
-Stream  = require '../lib/feedly/stream'
+Promise      = require 'bluebird'
+_            = require 'underscore'
+cronJob      = require('cron').CronJob
+Stream       = require '../lib/feedly/stream'
 FeedlyClient = require '../lib/feedly/client'
 Config       = require '../lib/config'
+Item         = require '../lib/feedly/item'
 
-feedTask = (msg, newerThan) ->
+feedTask = (msg) ->
   client = new FeedlyClient(Config.getAccessToken())
-  Stream.feedIds(client.markCounts(newerThan))
+  Stream.feedIds(client.markCounts())
   .catch (response) ->
     msg.send 'markCountsが失敗してしまいました'
     msg.send JSON.stringify(response)
@@ -17,8 +16,24 @@ feedTask = (msg, newerThan) ->
     if !feedIds || feedIds.length is 0
       console.log 'there is no feed.'
       return Promise.reject()
-    console.log(feedIds)
     Promise.resolve(feedIds)
+  .map (feedId) ->
+    Stream.responseItems(client.streamContents(feedId))
+  .catch (response, body) ->
+    msg.send 'streamContentsが失敗してしまいました'
+    msg.send JSON.stringify(response)
+    msg.send JSON.stringify(body)
+  .then (items) ->
+    _.each items[0], (i) ->
+      item = new Item(i)
+      item.hrefs()
+      .then (hrefs) ->
+        console.log item.title()
+        _.each hrefs, (href) ->
+          console.log(href)
+      .catch (error) ->
+        console.trace()
+        console.warn(error)
 
 class MessageDecorator
   constructor: (@robot, @env) ->
@@ -29,11 +44,11 @@ class MessageDecorator
 module.exports = (robot) ->
   new cronJob('*/20 * * * *', () ->
     msg = new MessageDecorator(robot, {room: Config.getFeedlyRoomName()})
-    feedTask(msg, moment().subtract(20, 'minutes').valueOf())
+    feedTask(msg)
   ).start()
 
   robot.respond /feed$/i, (msg) ->
-    feedTask(msg, moment().subtract(20, 'minutes').valueOf())
+    feedTask(msg)
 
   robot.respond /help token/i, (msg) ->
     msg.send 'アクセストークンを作るリンクはこれです'

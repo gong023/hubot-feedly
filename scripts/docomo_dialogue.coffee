@@ -8,24 +8,24 @@ module.exports = (robot) ->
     query = msg.match[1]
     return if query.match(/(教えて|feed|ping|profile|help|image|animate)/)
     params = Config.getDocomoCharacter()
-    docomo_client = new Docomo(Config.getDocomoToken())
+    docomoClient = new Docomo(Config.getDocomoToken())
 
-    context_timestamp = robot.brain.get 'docomo_context_timestamp' || moment().unix()
-    if moment().unix() - context_timestamp > 60 * 15
+    contextTimestamp = robot.brain.get 'docomo_context_timestamp' || moment().unix()
+    if moment().unix() - contextTimestamp > 60 * 15
       robot.brain.set 'docomo_context', ''
     else
       params['context'] = robot.brain.get 'docomo_context' || ''
 
-    docomo_client.createDialogue(query, params, (err, data) ->
+    docomoClient.createDialogue(query, params, (err, data) ->
         msg.send(data.utt)
         robot.brain.set 'docomo_context', data.context
         robot.brain.set 'docomo_context_timestamp', moment().unix()
       )
 
-  robot.respond /教えて (.*)/, (msg) ->    
+  robot.respond /教えて (.*)/, (msg) ->
     query = msg.match[1]
-    docomo_client = new Docomo(Config.getDocomoToken())
+    docomoClient = new Docomo(Config.getDocomoToken())
 
-    docomo_client.createKnowledgeQA(query, (err, data) ->
+    docomoClient.createKnowledgeQA(query, (err, data) ->
         msg.send(data.message.textForDisplay + ' ' + data.answers[0].linkUrl)
       )

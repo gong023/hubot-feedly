@@ -20,4 +20,19 @@ Config =
   getDocomoCharacter: () ->
     JSON.parse(process.env.HUBOT_DOCOMO_CHARACTER) if process.env.HUBOT_DOCOMO_CHARACTER isnt undefined
 
+  getTumblrConsumerKey: () ->
+    process.env.TUMBLR_CONSUMER_KEY
+
+  getTumblrConsumerSecret: () ->
+    process.env.TUMBLR_CONSUMER_SECRET
+
+  getTumblrToken: () ->
+    process.env.TUMBLR_TOKEN
+
+  getTumblrTokenSecret: () ->
+    process.env.TUMBLR_TOKEN_SECRET
+
+  getTumblrApiKey: () ->
+    process.env.TUMBLR_API_KEY
+
 module.exports = Config

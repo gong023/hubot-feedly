@@ -30,24 +30,12 @@ Stream =
           .value()
       return Promise.resolve(feedIds)
 
-  # responseItems: (api_promise, feedIds) ->
-  #   _.each(feedIds, (feedId) -> this.streamContents(api_promise, feedId))
-  #
-  # streamContents: (api_promise, feedId) ->
-  #   api_promise.spread (response, body) ->
-  #     return Promise.reject(response, body) if response.statusCode isnt 200
-  #     # newerThan が期待通りに動かない
-  #     #items = _.filter(JSON.parse(response[0].body).items, (item) -> parseInt(item.crawled) > newerThan)
-  #     items = _.last(JSON.parse(body).items, 10) # 多すぎるとbotのプロセスが死ぬ？
-  #     _.each items, (item) ->
-  #       @msg.send item.title
-  #       @msg.send item.alternate[0].href
-  #       responseItems.push item
-  #   .error (response, body) ->
-  #     @msg.send 'streamContentsが失敗してしまいました'
-  #     @msg.send JSON.stringify(response)
-  #     @msg.send JSON.stringify(body)
-  #
+  responseItems: (api_promise) ->
+    api_promise.spread (response, body) ->
+      if response.statusCode isnt 200
+        return Promise.reject(response, body)
+      return Promise.resolve(JSON.parse(body).items)
+
   # markCounts: () ->
   #   markCategories = Config.getMarkAsReadCategories()
   #   return if markCategories is undefined
