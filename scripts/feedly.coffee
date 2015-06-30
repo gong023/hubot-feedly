@@ -29,11 +29,18 @@ feedTask = (msg) ->
       item.hrefs()
       .then (hrefs) ->
         console.log item.title()
-        _.each hrefs, (href) ->
-          console.log(href)
+        delayLoop(hrefs, 3000, (href) -> msg.send(href))
       .catch (error) ->
         console.trace()
         console.warn(error)
+
+delayLoop = (arr, interval, callback) ->
+  i = arr.length
+  timerId = setInterval(() ->
+    return clearInterval(timerId) if !i
+    callback(arr[arr.length - i])
+    i--
+  , interval)
 
 class MessageDecorator
   constructor: (@robot, @env) ->
