@@ -20,15 +20,6 @@ class Item
 class TumblrHref
   constructor: (@rawHref) ->
 
-  # client: () ->
-  #   oauth =
-  #       consumer_key: Config.getTumblrConsumerKey()
-  #       consumer_secret: Config.getTumblrConsumerSecret()
-  #       token: Config.getTumblrToken()
-  #       token_secret: Config.getTumblrTokenSecret()
-  #   @client ?= new Blog(this.blogName(), oauth)
-  #   new Blog(this.blogName(), oauth)
-
   convertToImage: () ->
     # http://api.tumblr.com/v2/blog/derekg.org/posts?id=7431599279&api_key={key}
     request.getAsync(
@@ -39,8 +30,8 @@ class TumblrHref
     ).spread (response, body) ->
       body = JSON.parse(body)
       return Promise.reject(body.meta.msg) if body.meta.status isnt 200
-      return Promise.resolve(_.map(body.response.posts, (post) -> post.post_url)) if body.response.posts.trail.photos is undefined
-      return Promise.resolve(_.map(body.response.posts.trail.photos, (photo) -> photo.original_size.url))
+      return Promise.resolve(_.map(body.response.posts, (post) -> post.post_url)) if body.response.posts[0].type isnt 'photo'
+      return Promise.resolve(_.map(body.response.posts[0].photos, (photo) -> photo.original_size.url))
 
   blogName: () ->
     match = @rawHref.match(/^http:\/\/(.*)\/post\/\d+/)
