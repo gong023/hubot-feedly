@@ -15,13 +15,12 @@ class Item
     if rawHref.match(/tumblr/)
       t = new TumblrHref(rawHref)
       return t.convertToImage()
-    Promise.resolve(rawHref)
+    Promise.resolve([rawHref])
 
 class TumblrHref
   constructor: (@rawHref) ->
 
   convertToImage: () ->
-    # http://api.tumblr.com/v2/blog/derekg.org/posts?id=7431599279&api_key={key}
     request.getAsync(
         uri: 'http://api.tumblr.com/v2/blog/' + this.blogName() + '/posts'
         qs:

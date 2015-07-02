@@ -36,21 +36,13 @@ Stream =
         return Promise.reject(response, body)
       return Promise.resolve(JSON.parse(body).items)
 
-  # markCounts: () ->
-  #   markCategories = Config.getMarkAsReadCategories()
-  #   return if markCategories is undefined
-  #   markFeeds = _.chain(responseItems)
-  #               .map((responseItem) ->
-  #                 label = responseItem.categories[0].label
-  #                 if _.contains(markCategories, label) then responseItem.id else ''
-  #               )
-  #               .compact()
-  #               .value()
-  #   client.markEntriesAsRead(markFeeds)
-  #   .then (response) ->
-  #     if response[0].statusCode isnt 200
-  #       msg.send '既読つけるのに失敗してしまいました'
-  #       msg.send JSON.stringify(response[0].body)
-
+  markCounts: (api_promise, responseItems) ->
+    markCategories = Config.getMarkAsReadCategories()
+    return if markCategories is undefined
+    pickLabel = (responseItem) ->
+      label = responseItem.categories[0].label
+      if _.contains(markCategories, label) then responseItem.id else ''
+    markFeeds = _.chain(responseItems[0]).map(pickLabel).compact().value()
+    api_promise.markEntriesAsRead(markFeeds)
 
 module.exports = Stream

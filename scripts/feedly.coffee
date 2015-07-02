@@ -14,7 +14,7 @@ feedTask = (msg) ->
     msg.send JSON.stringify(response)
   .then (feedIds) ->
     if !feedIds || feedIds.length is 0
-      console.log 'there is no feed.'
+      console.log 'フィードがありません'
       return Promise.reject()
     Promise.resolve(feedIds)
   .map (feedId) ->
@@ -25,14 +25,21 @@ feedTask = (msg) ->
     msg.send JSON.stringify(body)
   .then (items) ->
     _.each items[0], (i) ->
-      item = new Item(i)
-      item.hrefs()
+      message_item = new Item(i)
+      message_item.hrefs()
       .then (hrefs) ->
-        console.log item.title()
-        delayLoop(hrefs, 3000, (href) -> msg.send(href))
+        # title = message_item.title()
+        delayLoop(hrefs, 6000, (href) -> msg.send(href))
       .catch (error) ->
         console.trace()
         console.warn(error)
+    return Promise.resolve(items)
+  .then (items) ->
+    Stream.markCounts(client, items)
+    .then (response) ->
+      if response[0].statusCode isnt 200
+        console.warn  '既読つけるのに失敗してしまいました'
+        console.warn   JSON.stringify(response[0].body)
 
 delayLoop = (arr, interval, callback) ->
   i = arr.length
