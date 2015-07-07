@@ -20,9 +20,9 @@ feedTask = (msg) ->
   .map (feedId) ->
     Stream.responseItems(client.streamContents(feedId))
   .catch (response, body) ->
-    msg.send 'streamContentsが失敗してしまいました'
-    msg.send JSON.stringify(response)
-    msg.send JSON.stringify(body)
+    console.log  'streamContentsが失敗してしまいました'
+    console.log  JSON.stringify(response)
+    console.log  JSON.stringify(body)
   .then (items) ->
     _.each items[0], (i) ->
       message_item = new Item(i)
