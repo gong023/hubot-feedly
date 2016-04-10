@@ -10,8 +10,8 @@ feedTask = (robot, msg) ->
   client = new FeedlyClient(Config.getAccessToken())
   Stream.feedIds(client.markCounts())
   .catch (response) ->
-    msg.send 'markCountsが失敗してしまいました'
-    msg.send JSON.stringify(response)
+    console.log 'markCountsが失敗してしまいました'
+    console.log JSON.stringify(response)
   .then (feedIds) ->
     if !feedIds || feedIds.length is 0
       robot.logger.info('フィードがありません')
