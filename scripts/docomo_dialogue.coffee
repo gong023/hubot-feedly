@@ -6,7 +6,7 @@ module.exports = (robot) ->
 
   robot.respond /(.*)/, (msg) ->
     query = msg.match[1]
-    return if query.match(/(教えて|feed|ping|profile|help|image|animate)/)
+    return if query.match(/(教えて|feed|ping|profile|help|image|animate|yuri)/)
     params = Config.getDocomoCharacter()
     docomoClient = new Docomo(Config.getDocomoToken())
 
