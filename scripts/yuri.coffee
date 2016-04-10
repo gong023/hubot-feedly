@@ -1,6 +1,7 @@
 Promise      = require 'bluebird'
 _            = require 'underscore'
 mysql        = require 'mysql'
+cronJob      = require('cron').CronJob
 YuriClient   = require '../lib/yuriclient'
 Config       = require '../lib/config'
 
@@ -22,7 +23,7 @@ class MysqlClient
   disconnect: () ->
     @connection.end()
 
-yuriTask = (robot, msg) ->
+yuriTask = (robot) ->
   client = new YuriClient()
   client.following()
   .spread (response, body) ->
@@ -40,17 +41,21 @@ yuriTask = (robot, msg) ->
         _.each work.links, (link, i) ->
           attachments.push({text: i, image_url: link})
           robot.emit 'slack.attachment',
-            message: msg.message
+            channel: Config.getFeedlyRoomName()
             text: work.caption
             attachments: attachments
         mysqlClient.addWorkId(work.id)
       .then () ->
         mysqlClient.disconnect()
   .catch (response, body) ->
-    msg.send JSON.stringify(response)
-    msg.send JSON.stringify(body)
+    robot.send(JSON.stringify(response))
+    robot.send(JSON.stringify(body))
 
 module.exports = (robot) ->
-  robot.respond /yuri$/i, (msg) ->
-    yuriTask(robot, msg)
+  robot.respond /yuri$/i, () ->
+    yuriTask(robot)
+
+  new cronJob('*/20 * * * *', () ->
+    yuriTask(robot)
+  ).start()
 

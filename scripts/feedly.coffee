@@ -56,7 +56,7 @@ class MessageDecorator
     @robot.send(@env, message)
 
 module.exports = (robot) ->
-  new cronJob('*/20 * * * *', () ->
+  new cronJob('*/10 * * * *', () ->
     msg = new MessageDecorator(robot, {room: Config.getFeedlyRoomName()})
     feedTask(robot, msg)
   ).start()
