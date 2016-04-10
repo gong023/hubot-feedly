@@ -10,9 +10,14 @@ module.exports = (robot) ->
       Promise.reject(response, body) if response.statusCode isnt 200
       body = JSON.parse(body)
       _.each body.works, (work) ->
-        msg.send(work.caption)
-        _.each work.links, (link) ->
-          msg.send(link)
+        attachments = []
+        _.each work.links, (link, i) ->
+          attachments.push({text: i, image_url: link})
+
+        robot.emit 'slack.attachment',
+          message: msg.message
+          text: work.caption
+          attachments: attachments
     .catch (response, body) ->
       msg.send JSON.stringify(response)
       msg.send JSON.stringify(body)
