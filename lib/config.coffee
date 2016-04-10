@@ -35,4 +35,16 @@ Config =
   getTumblrApiKey: () ->
     process.env.TUMBLR_API_KEY
 
+  getMysqlHost: () ->
+    process.env.MYSQL_HOST
+
+  getMysqlUser: () ->
+    process.env.MYSQL_USER
+
+  getMysqlPassword: () ->
+    process.env.MYSQL_PASSWORD
+
+  getMysqlDatabase: () ->
+    process.env.MYSQL_DATABASE
+
 module.exports = Config

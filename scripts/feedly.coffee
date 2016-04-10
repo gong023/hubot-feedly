@@ -6,7 +6,7 @@ FeedlyClient = require '../lib/feedly/client'
 Config       = require '../lib/config'
 Item         = require '../lib/feedly/item'
 
-feedTask = (msg) ->
+feedTask = (robot, msg) ->
   client = new FeedlyClient(Config.getAccessToken())
   Stream.feedIds(client.markCounts())
   .catch (response) ->
@@ -14,15 +14,15 @@ feedTask = (msg) ->
     msg.send JSON.stringify(response)
   .then (feedIds) ->
     if !feedIds || feedIds.length is 0
-      console.log 'フィードがありません'
+      robot.logger.info('フィードがありません')
       return Promise.reject()
     Promise.resolve(feedIds)
   .map (feedId) ->
     Stream.responseItems(client.streamContents(feedId))
   .catch (response, body) ->
-    console.log  'streamContentsが失敗してしまいました'
-    console.log  JSON.stringify(response)
-    console.log  JSON.stringify(body)
+    robot.logger.alert 'streamContentsが失敗してしまいました'
+    robot.logger.alert JSON.stringify(response)
+    robot.logger.alert JSON.stringify(body)
   .then (items) ->
     _.each items[0], (i) ->
       message_item = new Item(i)
@@ -32,14 +32,14 @@ feedTask = (msg) ->
         delayLoop(hrefs, 6000, (href) -> msg.send(href))
       .catch (error) ->
         console.trace()
-        console.warn(error)
+        robot.logger.alert(JSON.stringify(error))
     return Promise.resolve(items)
   .then (items) ->
     Stream.markCounts(client, items)
     .then (response) ->
       if response[0].statusCode isnt 200
-        console.warn  '既読つけるのに失敗してしまいました'
-        console.warn   JSON.stringify(response[0].body)
+        robot.logger.alert '既読つけるのに失敗してしまいました'
+        robot.logger.alert JSON.stringify(response[0].body)
 
 delayLoop = (arr, interval, callback) ->
   i = arr.length
@@ -58,11 +58,11 @@ class MessageDecorator
 module.exports = (robot) ->
   new cronJob('*/20 * * * *', () ->
     msg = new MessageDecorator(robot, {room: Config.getFeedlyRoomName()})
-    feedTask(msg)
+    feedTask(robot, msg)
   ).start()
 
   robot.respond /feed$/i, (msg) ->
-    feedTask(msg)
+    feedTask(robot, msg)
 
   robot.respond /help token/i, (msg) ->
     msg.send 'アクセストークンを作るリンクはこれです'
