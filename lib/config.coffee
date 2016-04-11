@@ -14,6 +14,9 @@ Config =
   getFeedlyRoomName:() ->
     process.env.FEEDLY_ROOM_NAME
 
+  getYuriRoomName:() ->
+    process.env.YURI_ROOM_NAME
+
   getDocomoToken: () ->
     process.env.HUBOT_DOCOMO_TOKEN
 
