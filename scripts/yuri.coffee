@@ -40,10 +40,10 @@ yuriTask = (robot) ->
           return Promise.resolve(conn)
         _.each work.links, (link, i) ->
           attachments.push({text: i, image_url: link})
-          robot.emit 'slack.attachment',
-            channel: Config.getYuriRoomName()
-            text: work.caption
-            attachments: attachments
+        robot.emit 'slack.attachment',
+          channel: Config.getYuriRoomName()
+          text: work.caption
+          attachments: attachments
         mysqlClient.addWorkId(work.id)
       .then () ->
         mysqlClient.disconnect()
