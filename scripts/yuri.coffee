@@ -14,7 +14,7 @@ class MysqlClient
       database: Config.getMysqlDatabase()
     @connection.connect()
 
-  isWorkIdExist: (workId) ->
+  getByWorkId: (workId) ->
     Promise.promisify(@connection.query, @connection)('select * from read_works where work_id = ?', [workId])
 
   addWorkId: (workId) ->
@@ -31,17 +31,17 @@ yuriTask = (robot) ->
       return Promise.reject(response, body)
     body = JSON.parse(body)
     _.each body.works, (work) =>
+      attachments = []
       mysqlClient = new MysqlClient()
-      mysqlClient.isWorkIdExist(work.id)
+      mysqlClient.getByWorkId(work.id)
       .spread (rows, conn) ->
         if rows.length >= 1
           robot.logger.info(work.id + ' already exists')
           return Promise.resolve(conn)
-        attachments = []
         _.each work.links, (link, i) ->
           attachments.push({text: i, image_url: link})
           robot.emit 'slack.attachment',
-            channel: Config.getFeedlyRoomName()
+            channel: Config.getYuriRoomName()
             text: work.caption
             attachments: attachments
         mysqlClient.addWorkId(work.id)
