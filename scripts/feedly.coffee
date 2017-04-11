@@ -40,6 +40,8 @@ feedTask = (robot, msg) ->
       if response[0].statusCode isnt 200
         robot.logger.alert '既読つけるのに失敗してしまいました'
         robot.logger.alert JSON.stringify(response[0].body)
+  .catch () ->
+    robot.logger.alert 'outer'
 
 delayLoop = (arr, interval, callback) ->
   i = arr.length
@@ -56,7 +58,7 @@ class MessageDecorator
     @robot.send(@env, message)
 
 module.exports = (robot) ->
-  new cronJob('*/10 * * * *', () ->
+  new cronJob('*/15 * * * *', () ->
     msg = new MessageDecorator(robot, {room: Config.getFeedlyRoomName()})
     feedTask(robot, msg)
   ).start()
