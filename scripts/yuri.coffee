@@ -24,6 +24,8 @@ class MysqlClient
     @connection.end()
 
 yuriTask = (robot) ->
+  if !Config.IsAvailableYuri()
+    return
   client = new YuriClient()
   client.following()
   .spread (response, body) ->

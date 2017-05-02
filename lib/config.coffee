@@ -14,6 +14,9 @@ Config =
   getFeedlyRoomName:() ->
     process.env.FEEDLY_ROOM_NAME
 
+  IsAvailableYuri:() ->
+    process.env.YURI_AVAILABLE
+
   getYuriRoomName:() ->
     process.env.YURI_ROOM_NAME
 
