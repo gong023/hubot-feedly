@@ -24,7 +24,7 @@ class MysqlClient
     @connection.end()
 
 yuriTask = (robot) ->
-  if !Config.IsAvailableYuri()
+  if Config.IsAvailableYuri() is undefined
     return
   client = new YuriClient()
   client.following()

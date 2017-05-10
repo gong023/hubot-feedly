@@ -3,3 +3,4 @@ node_modules
 .hubot_history
 feedly_access_token.txt
 run.sh
+kube-hubot-deployment.yaml
